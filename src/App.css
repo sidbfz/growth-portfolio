@@ -158,7 +158,10 @@
 .hero__props { position: absolute; z-index: 0; inset: 0; pointer-events: none; }
 .hero__mouth { position: absolute; inset: 0; }
 .hp { position: absolute; }
-.hp img { width: 100%; filter: drop-shadow(0 12px 16px color-mix(in srgb, var(--white) 24%, transparent)); }
+/* the hover nudge (usePropsHover in App.jsx) moves this inner layer, so it composes with the float
+   bob and the intro rise on the .hp wrapper and with the tilt on the image */
+.hp__in { transform-origin: 50% 70%; }
+.hp img { display: block; width: 100%; filter: drop-shadow(0 12px 16px color-mix(in srgb, var(--white) 24%, transparent)); }
 /* tilt lives on the image: the float animation owns the wrapper's transform */
 .hp--book   { width: 28%;   left: 18.1%; top: 19.2%; }
 .hp--book img { transform: rotate(-14deg); }
@@ -166,9 +169,9 @@
 .hp--camera img { transform: rotate(13deg); }
 .hp--laptop { width: 44%;   left: 30.2%; top: 15.3%; }
 .hp--laptop img { transform: rotate(4deg); }
-.hp--mic    { width: 26%;   left: 6%;    top: 17.4%; }
+.hp--mic    { width: 26%;   left: 6%;    top: 19.9%; }
 .hp--mic img { transform: rotate(-22deg); }
-.hp--heart  { width: 17%;   left: 26.9%; top: 26.9%; }
+.hp--heart  { width: 17%;   left: 28.9%; top: 26.9%; }
 .hp--heart img { transform: rotate(-12deg); }
 
 /* mobile head carousel */

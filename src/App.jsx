@@ -240,7 +240,7 @@ function gazeSchedule(w, h, pts) {
  * tear where it stands (its centre, in % of the head box, as placed in App.css), so the opening is
  * there before anything comes out of it. They all finish before the intro ends.
  */
-const PROP_X = { mic: 19, book: 32.1, heart: 35.4, laptop: 52.2, camera: 74.5 }
+const PROP_X = { mic: 19, book: 32.1, heart: 37.4, laptop: 52.2, camera: 74.5 }
 function propStarts(w, h, pts) {
   const out = {}
   const dur = IN.peel[1] - IN.peel[0]
@@ -254,6 +254,105 @@ function propStarts(w, h, pts) {
     out[k] = Math.min(ms, IN.end - IN.prop * 0.7)
   })
   return out
+}
+
+/**
+ * HOVER: with a mouse (or pen), an object near the pointer gives a little, each on its own: it's
+ * nudged away from the pointer and dragged along as the pointer brushes through it, leaning a few
+ * degrees the way it's pushed, on a soft spring that settles it back once the pointer has gone. At
+ * most ~1.2% of the head's width (≈ 10px on a laptop) and 5°. It moves each object's inner layer
+ * (.hp__in), so the float bob and the intro rise on the .hp wrapper are untouched, and the objects
+ * stay under their clips (a nudge down only tucks more of one under the torn edge). The objects take
+ * no pointer events: the eyes and the face tap never notice. Off for touch, under reduced motion and
+ * until the intro is over; the frame loop only runs while the pointer or an object is moving.
+ */
+function usePropsHover(ref, on, hw) {
+  useEffect(() => {
+    const root = ref.current
+    if (!on || !root || !hw || prefersReduced()) return
+    const items = [...root.querySelectorAll('.hp')].map((el) => ({ el, layer: el.querySelector('.hp__in'), x: 0, y: 0, vx: 0, vy: 0, css: '' }))
+    const max = Math.min(12, Math.max(3, hw * 0.012)) // px
+    const K = 120 // spring stiffness (1/s²) and damping (1/s): a little give, one soft overshoot
+    const D = 15
+    const DRAG = 0.25 * max // how far a brush at ~600px/s carries it: ~3/4 of max at the centre
+    let p = null // the pointer (client px), while it's a mouse over the window
+    let prev = null
+    let ux = 0 // its velocity (px/s), smoothed
+    let uy = 0
+    let t0 = 0
+    let id = 0
+    const frame = (t) => {
+      id = 0
+      const dt = Math.min(0.05, t0 ? Math.max(0.001, (t - t0) / 1000) : 1 / 60)
+      t0 = t
+      if (p && prev) {
+        const a = 1 - Math.exp(-dt / 0.05)
+        ux += ((p.x - prev.x) / dt - ux) * a
+        uy += ((p.y - prev.y) / dt - uy) * a
+      } else ux = uy = 0
+      prev = p && { ...p }
+      const rects = items.map((o) => o.el.getBoundingClientRect()) // (reads first, then writes)
+      let busy = Math.hypot(ux, uy) > 2
+      items.forEach((o, i) => {
+        const r = rects[i]
+        let tx = 0
+        let ty = 0
+        let fx = 0
+        let fy = 0
+        if (p && r.width) {
+          const R = 0.55 * Math.max(r.width, r.height) // "near": a bit past the image's own box
+          const dx = r.left + r.width / 2 - p.x // from the pointer to the object's centre
+          const dy = r.top + r.height / 2 - p.y
+          const dist = Math.hypot(dx, dy)
+          if (dist < R) {
+            const n = 1 - dist / R
+            const f = n * n * (3 - 2 * n) // 1 at the centre, easing to 0 at R
+            const push = 0.45 * max * Math.sin(Math.PI * (dist / R)) // away from the pointer
+            tx = dist ? (dx / dist) * push : 0
+            ty = dist ? (dy / dist) * push : 0
+            fx = ux * f * DRAG
+            fy = uy * f * DRAG
+          }
+        }
+        o.vx += (K * (tx - o.x) - D * o.vx + fx) * dt
+        o.vy += (K * (ty - o.y) - D * o.vy + fy) * dt
+        o.x += o.vx * dt
+        o.y += o.vy * dt
+        // settled (on its push, or back home): stop here until the pointer moves or the page scrolls
+        const settled = Math.abs(tx - o.x) + Math.abs(ty - o.y) < 0.05 && Math.abs(o.vx) + Math.abs(o.vy) < 0.5
+        if (!settled) busy = true
+        let css = ''
+        if (settled && !tx && !ty) o.x = o.y = o.vx = o.vy = 0
+        else {
+          const m = Math.hypot(o.x, o.y)
+          const k = m > 0 ? (max * Math.tanh(m / max)) / m : 0 // a soft cap at max
+          const rot = 5 * Math.tanh(o.x / max) // leans the way it's pushed
+          css = `translate3d(${(o.x * k).toFixed(2)}px, ${(o.y * k).toFixed(2)}px, 0) rotate(${rot.toFixed(2)}deg)`
+        }
+        if (css !== o.css) { o.css = css; o.layer.style.transform = css }
+      })
+      if (busy) id = requestAnimationFrame(frame)
+      else t0 = 0
+    }
+    const kick = () => { if (!id) id = requestAnimationFrame(frame) }
+    const move = (e) => {
+      if (e.pointerType !== 'mouse' && e.pointerType !== 'pen') return
+      p = { x: e.clientX, y: e.clientY }
+      kick()
+    }
+    const out = (e) => { if (!e.relatedTarget && p) { p = prev = null; kick() } } // left the window
+    const opts = { passive: true }
+    window.addEventListener('pointermove', move, opts)
+    window.addEventListener('scroll', kick, opts) // the objects move under a resting pointer
+    document.addEventListener('mouseout', out, opts)
+    return () => {
+      window.removeEventListener('pointermove', move, opts)
+      window.removeEventListener('scroll', kick, opts)
+      document.removeEventListener('mouseout', out, opts)
+      cancelAnimationFrame(id)
+      items.forEach((o) => { if (o.layer) o.layer.style.transform = '' })
+    }
+  }, [ref, on, hw])
 }
 
 /** true once `on` has stayed true for `ms`. */
@@ -362,6 +461,7 @@ function Hero() {
   usePreload(HERO_PRELOAD)
   const headRef = useRef(null)
   const peelRef = useRef(null)
+  const mouthRef = useRef(null)
   const { w: hw, h: hh } = useBoxSize(headRef)
   const sil = useSilhouette(site.heroFrames.center)
   const silS = useSilhouette(site.heroSurprised)
@@ -408,6 +508,7 @@ function Hero() {
   const gaze = done ? 'center' : glance
   const mouthClip = aboveTearClip(1, TEAR.base, TEAR.seed, 1.5)
   const props = site.heroProps
+  usePropsHover(mouthRef, done, hw)
 
   // the torn head and its objects scroll with the page, untouched; only the face reacts
   const tear = top + (hh * TEAR.base) / 100
@@ -459,12 +560,12 @@ function Hero() {
         <div className="hero__peel" ref={peelRef} style={{ clipPath: stuck, WebkitClipPath: stuck, visibility: gone ? 'hidden' : undefined, ...riseStyle }}>
           <div className="hero__props" style={{ clipPath: propsClip, WebkitClipPath: propsClip }}>
             {/* five 3D objects poking out of the tear; back to front */}
-            <div className="hero__mouth" style={{ clipPath: mouthClip, WebkitClipPath: mouthClip }}>
-              <Float seed={2} amp={9} className="hp hp--book" style={propRise('book')}><img src={props.book} alt="" /></Float>
-              <Float seed={6} amp={8} className="hp hp--camera" style={propRise('camera')}><img src={props.camera} alt="" /></Float>
-              <Float seed={3} amp={11} className="hp hp--laptop" style={propRise('laptop')}><img src={props.laptop} alt="" /></Float>
-              <Float seed={1} amp={8} className="hp hp--mic" style={propRise('mic')}><img src={props.mic} alt="" /></Float>
-              <Float seed={4} amp={9} className="hp hp--heart" style={propRise('heart')}><img src={props.heart} alt="" /></Float>
+            <div className="hero__mouth" ref={mouthRef} style={{ clipPath: mouthClip, WebkitClipPath: mouthClip }}>
+              <Float seed={2} amp={9} className="hp hp--book" style={propRise('book')}><div className="hp__in"><img src={props.book} alt="" /></div></Float>
+              <Float seed={6} amp={8} className="hp hp--camera" style={propRise('camera')}><div className="hp__in"><img src={props.camera} alt="" /></div></Float>
+              <Float seed={3} amp={11} className="hp hp--laptop" style={propRise('laptop')}><div className="hp__in"><img src={props.laptop} alt="" /></div></Float>
+              <Float seed={1} amp={8} className="hp hp--mic" style={propRise('mic')}><div className="hp__in"><img src={props.mic} alt="" /></div></Float>
+              <Float seed={4} amp={9} className="hp hp--heart" style={propRise('heart')}><div className="hp__in"><img src={props.heart} alt="" /></div></Float>
             </div>
           </div>
           <div className="hero__head" ref={headRef}>
