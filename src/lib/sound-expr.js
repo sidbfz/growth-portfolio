@@ -16,9 +16,6 @@
  *  - The files (~115 KB in all) are fetched only once sound is on, in idle time. A tap before
  *    they're in still gets its cue if the file lands within a beat, otherwise it's skipped
  *    (never late).
- *  - Sits clearly on top of the paper sounds: LEVEL is a few dB over a page flip, and while a cue
- *    plays the scrubbed tears and peels duck (sound.js duckScrubs, DUCK in sound-samples.js), so
- *    the vine boom on the scroll peel-off isn't buried in the sticker's rasp.
  *  - Mashing doesn't stack: one cue at a time (a new one cuts the last with a quick fade), at most
  *    one per COOLDOWN ms, and a longer gap once the taps come in a flurry. Variants alternate and
  *    each play is nudged a hair in pitch and level, so repeats don't sound canned.
@@ -27,7 +24,7 @@
  * public/assets/sfx/expr/ and list them in FILES below. Any length works; up to ~1.3 s (an
  * expression holds for 1.1 s).
  */
-import { getAudio, loadSample, onSoundLive, duckScrubs } from './sound.js'
+import { getAudio, loadSample, onSoundLive } from './sound.js'
 
 const BASE = `${import.meta.env?.BASE_URL || '/'}assets/sfx/expr/`
 /** expression name → its files (variants alternate). Names match the images in /assets/me/expressions/. */
@@ -40,10 +37,7 @@ const FILES = {
   confused: ['confused.mp3', 'confused-2.mp3'], // Huh cat / Windows XP error
   surprised: ['surprised.mp3'], // the scroll peel-off face (App.jsx): vine boom
 }
-// into the master bus: ~8 LU over a page flip (was 0.6, ~3 LU over it, and lost under the peel's
-// crackle), and the scrubbed tears and peels duck ~11 dB while one plays (duckScrubs). Mix peaks
-// stay ~12 dB under full scale (master is a plain gain, no limiter)
-export const LEVEL = 1.05
+const LEVEL = 1.05 // into the master bus: ~8 LU over a page flip, well above the scroll's paper sounds (was 0.6)
 const COOLDOWN = 380 // ms between cues
 const FLURRY = { taps: 4, within: 2200, gap: 900 } // this many cues this fast → wait longer
 const LATE = 260 // ms: a cue that can't start within this of the tap is dropped
@@ -131,7 +125,6 @@ function start(a, buf, name) {
     try { src.disconnect(); g.disconnect() } catch { /* gone */ }
   }
   src.start(now)
-  duckScrubs(buf.duration / src.playbackRate.value) // the paper rasp dips under the cue, back ~150 ms after it
   if (HAS_WINDOW && window.__sfxDebug) window.__sfxDebug.push({ voice: 'expr:' + name, t: performance.now(), played: true })
   return true
 }

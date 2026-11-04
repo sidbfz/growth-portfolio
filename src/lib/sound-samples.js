@@ -169,21 +169,6 @@ export const GRAIN = {
   peel: { span: 1.1, sRef: 1.1, grain: 0.055, hop: 0.022, jit: 0.005, back: 0.7, jump: 0.3, pan: 0.3 },
 }
 
-/**
- * The duck: while an expression cue plays (src/lib/sound-expr.js), the scrubbed tears and peels
- * (their own bus in src/lib/sound.js) dip by `depth`, so the meme sound cuts through the paper
- * rasp. Exponential glides both ways (no clicks): in within ~30 ms, back over ~150 ms once the cue
- * has finished. The flips, pops and whoosh are one-shots and stay as they are.
- */
-export const DUCK = { depth: 0.28, attack: 0.01, release: 0.05 } // -11 dB; time constants in s
-
-/** Duck a gain AudioParam from `now` for `hold` s, then let it back up to 1. A new duck while one runs extends it. */
-export function duckGain(param, now, hold, d = DUCK) {
-  param.cancelScheduledValues(now) // drops a pending release; a glide already under way carries on from where it is
-  param.setTargetAtTime(d.depth, now, d.attack)
-  param.setTargetAtTime(1, now + Math.max(0, hold), d.release)
-}
-
 const LOOKAHEAD = 0.1 // s of grains scheduled ahead of the current moment
 const HOLD = 0.07 // s without movement before the stream counts as stopped
 

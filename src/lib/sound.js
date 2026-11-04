@@ -45,11 +45,10 @@
  *   loadSample(url) → Promise<AudioBuffer | null>: fetched and decoded once (cached by url). It
  *                     waits until sound is first switched on before fetching; null on failure.
  *   onSoundLive(f)  → unsubscribe: f() whenever sound goes live (on and allowed to play) or stops.
- *   duckScrubs(s)   → dip the scrubbed tears and peels for s seconds (an expression cue is on).
  */
 import { useEffect, useRef, useSyncExternalStore } from 'react'
 import { VOICES, LEVEL, makeScrubber, makeTurnCounter } from './sound-synth.js'
-import { SAMPLES, splitSprite, prepBed, makeGrainScrub, scheduleGrain, duckGain } from './sound-samples.js'
+import { SAMPLES, splitSprite, prepBed, makeGrainScrub, scheduleGrain } from './sound-samples.js'
 
 const IDLE_MS = 12000 // suspend the context after this long without a sound
 const FADE = 0.025 // s: the master's time constant when switched off (~0.1 s to silence)
@@ -63,7 +62,6 @@ try { if (HAS_WINDOW) localStorage.removeItem('sfx') } catch { /* storage blocke
 let pref = false // on/off: only ever switched on by the sound button
 let ctx = null
 let out = null
-let scrubBus = null // the scrubbed tears and peels, into `out`: ducked while an expression cue plays
 let unlocked = false // the context has run at least once (audio is allowed on this page)
 let active = 0
 let lastPlay = 0
@@ -89,8 +87,6 @@ function start() {
     out = ctx.createGain()
     out.gain.value = LEVEL.master
     out.connect(ctx.destination)
-    scrubBus = ctx.createGain()
-    scrubBus.connect(out)
     ctx.addEventListener('statechange', markRunning)
     // if a recording isn't in after a moment (slow network, blocked), build its stand-in while
     // nothing else is happening, one voice per idle slot, so it's never built mid-scroll
@@ -200,7 +196,7 @@ const voicePlaying = () => document.documentElement.hasAttribute('data-voice-pla
 const allowed = () => pref && ctx && unlocked && !document.hidden && !voicePlaying()
 
 /** Start one sound. Returns true if it was scheduled. */
-function play(voice, { gain = 1, rate = 1, pan = 0, delay = 0, pad = false, scrub = false } = {}, retry = true) {
+function play(voice, { gain = 1, rate = 1, pan = 0, delay = 0, pad = false } = {}, retry = true) {
   const log = HAS_WINDOW && window.__sfxDebug
   if (!allowed()) {
     if (log) log.push({ voice, t: performance.now(), played: false })
@@ -210,7 +206,7 @@ function play(voice, { gain = 1, rate = 1, pan = 0, delay = 0, pad = false, scru
     const asked = performance.now()
     const w = wake()
     // a one-shot keeps its moment if the context is back within a beat; otherwise it's dropped
-    if (w && retry) w.then(() => { if (performance.now() - asked < 250) play(voice, { gain, rate, pan, delay, pad, scrub }, false) })
+    if (w && retry) w.then(() => { if (performance.now() - asked < 250) play(voice, { gain, rate, pan, delay, pad }, false) })
     return false
   }
   if (active >= MAX_VOICES) return false
@@ -236,7 +232,7 @@ function play(voice, { gain = 1, rate = 1, pan = 0, delay = 0, pad = false, scru
     let i = Math.floor(Math.random() * list.length)
     if (list.length > 1 && i === lastPick['s' + voice]) i = (i + 1) % list.length
     lastPick['s' + voice] = i
-    src = scheduleGrain(ctx, scrub ? scrubBus : out, list[i], { gain: gain * LEVEL[voice], rate, pan }, ctx.currentTime + delay, [0, 0.02])
+    src = scheduleGrain(ctx, out, list[i], { gain: gain * LEVEL[voice], rate, pan }, ctx.currentTime + delay, [0, 0.02])
   }
   active++
   const end = src.onended
@@ -246,14 +242,14 @@ function play(voice, { gain = 1, rate = 1, pan = 0, delay = 0, pad = false, scru
   return true
 }
 
-/** Start a batch of scrub grains from the recording (they're timed from now), into the ducked scrub bus. */
-function playGrains(voice, grains, level = 1) {
+/** Start a batch of scrub grains from the recording (they're timed from now). */
+function playGrains(voice, grains) {
   const r = rec[voice]
   const now = ctx.currentTime
   let n = 0
   for (const g of grains) {
     if (active >= MAX_VOICES) break
-    const src = scheduleGrain(ctx, scrubBus, r.buffer, { ...g, gain: g.gain * LEVEL.rec[voice] * level }, now + g.at)
+    const src = scheduleGrain(ctx, out, r.buffer, { ...g, gain: g.gain * LEVEL.rec[voice] }, now + g.at)
     active++
     const end = src.onended
     src.onended = () => { active--; end?.() }
@@ -291,12 +287,9 @@ export const sfx = {
 /**
  * A scrub stream for 'tear' or 'peel': returns update(p), p in 0..1 (null resets). With the
  * recording loaded it scrubs through it in grains; before that, the synthesised stop-motion grains.
- * opts: { pan, level } (level: this stream's gain, linear, default 1). Both go through the scrub
- * bus, which ducks under the expression cues (duckScrubs).
  */
 export function scrubSound(kind, opts) {
   const synth = makeScrubber(kind, opts)
-  const level = opts?.level ?? 1
   let grains = null
   let len = 0
   return (p) => {
@@ -307,12 +300,12 @@ export function scrubSound(kind, opts) {
       const list = grains(p, now)
       if (list && allowed()) {
         if (ctx.state !== 'running') wake()
-        else playGrains(kind, list, level)
+        else playGrains(kind, list)
       }
       return
     }
     const g = synth(p, now)
-    if (g) play(g.voice, { ...g, gain: g.gain * level, scrub: true })
+    if (g) play(g.voice, g)
   }
 }
 
@@ -358,14 +351,6 @@ export function getAudio() {
   if (ctx.state !== 'running') wake()
   touch()
   return { ctx, out }
-}
-
-/**
- * Duck the scrubbed tears and peels for `hold` s (then ~150 ms back up): an expression cue is
- * playing (src/lib/sound-expr.js). See DUCK in src/lib/sound-samples.js.
- */
-export function duckScrubs(hold) {
-  if (scrubBus) duckGain(scrubBus.gain, ctx.currentTime, hold)
 }
 
 /**
