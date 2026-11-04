@@ -176,7 +176,7 @@ export const site = {
 
   // ---------- footer ----------
   footer: {
-    bubble: 'You made it! Now say hi.',
+    bubble: 'That’s the end. Now email me.',
     copyright: '© 2026 Siddharth Farkade',
     rights: 'Written with Wispr Flow',
     // plain text links, in this order; `share` is the last one (Web Share, else copies the link)
