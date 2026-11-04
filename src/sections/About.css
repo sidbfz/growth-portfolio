@@ -36,6 +36,6 @@
   .foot { grid-template-columns: 1fr; padding: 20px 16px 0; }
   .foot__main { order: 1; padding-bottom: 8px; }
   .foot__head { order: 2; width: min(66vw, 300px); margin: 16px auto -7%; }
-  .foot .face-tracker__bubble { top: -2%; left: 58%; font-size: 14px; }
+  .foot .face-tracker__bubble { top: -2%; left: 58%; font-size: 14px; white-space: normal; width: max-content; max-width: 10em; text-wrap: balance; }
   .foot__links { gap: 4px 22px; }
 }
