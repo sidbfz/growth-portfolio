@@ -1,0 +1,86 @@
+.face-tracker {
+  position: relative;
+  width: var(--ft-size, 320px);
+  container-type: inline-size;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.face-tracker__face {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 705 / 812;
+  cursor: pointer;
+  outline: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.face-tracker__face:focus-visible {
+  outline: 2px dashed var(--ft-focus, rgba(255, 255, 255, 0.7));
+  outline-offset: 6px;
+  border-radius: 24px;
+}
+
+.face-tracker__stage {
+  position: absolute;
+  inset: 0;
+  filter: var(--ft-shadow, drop-shadow(0 10px 18px rgba(0, 0, 0, 0.28)));
+}
+
+.face-tracker__stage img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: contain;
+  object-position: 50% 100%;
+  visibility: hidden;
+  pointer-events: none;
+}
+/* the visible frame is set inline by FaceTracker.jsx: a hard cut, so never add a transition or a
+   transform here (every frame is the same head; only the eyes may change) */
+
+/* Speech bubble. Theme it with --ft-bubble-bg / --ft-bubble-fg / --ft-bubble-shadow; the head's
+   shadow and focus ring with --ft-shadow / --ft-focus. Defaults suit a dark page. */
+.face-tracker__bubble {
+  position: absolute;
+  z-index: 2;
+  top: -9%;
+  padding: 0.75em 1.35em;
+  background: var(--ft-bubble-bg, #fff);
+  color: var(--ft-bubble-fg, #111);
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: clamp(12px, 5.4cqw, 22px);
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+  white-space: nowrap;
+  box-shadow: var(--ft-bubble-shadow, 0 6px 16px rgba(0, 0, 0, 0.22));
+  pointer-events: none;
+  visibility: hidden; /* revealed by GSAP */
+}
+.face-tracker__bubble::after {
+  content: "";
+  position: absolute;
+  bottom: -0.55em;
+  width: 1.2em;
+  height: 1.2em;
+  background: var(--ft-bubble-bg, #fff);
+  border-radius: 0 0 0.25em 0;
+  transform: rotate(45deg) skew(12deg, 12deg);
+  z-index: -1; /* sit behind the text, never over the first letter */
+}
+.face-tracker__bubble.is-right {
+  left: 52%;
+  transform-origin: 15% 100%;
+}
+.face-tracker__bubble.is-right::after {
+  left: 1.1em;
+}
+.face-tracker__bubble.is-left {
+  right: 52%;
+  transform-origin: 85% 100%;
+}
+.face-tracker__bubble.is-left::after {
+  right: 1.1em;
+}

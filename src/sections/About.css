@@ -1,0 +1,41 @@
+/* Screen 4 (paper): the quote set large, one line of bio; then the footer. */
+.about { position: relative; background: var(--navy); padding: clamp(12px, 2svh, 28px) var(--gm) clamp(24px, 3.5svh, 44px); }
+
+.aq { margin: 0 auto; max-width: 1180px; text-align: center; }
+.aq__text { margin: 0; }
+.aq__text p { margin: 0; font-size: clamp(32px, 4.7vw, 78px); font-weight: 700; line-height: 1.02; letter-spacing: -0.05em; color: var(--white); text-wrap: balance; }
+.aq__line { display: block; }
+.aq__who { margin-top: clamp(14px, 2svh, 24px); font-size: clamp(15px, 1.1vw, 17px); font-style: italic; font-weight: 500; color: var(--muted); }
+.aq__who cite { font-style: italic; }
+
+.about__bio { max-width: 34em; margin: clamp(18px, 3svh, 32px) auto 0; text-align: center; font-size: clamp(16px, 1.2vw, 19px); line-height: 1.45; letter-spacing: -0.015em; color: var(--muted); }
+.about__bio b { color: var(--white); font-weight: 600; }
+
+/* ---------- footer ---------- */
+.foot { position: relative; display: grid; grid-template-columns: min(30vw, 400px) minmax(0, 1fr); gap: 0 clamp(24px, 4vw, 64px); align-items: end; background: var(--navy); padding: clamp(18px, 3svh, 36px) var(--gm) 0; overflow: hidden; border-top: 1px solid color-mix(in srgb, var(--white) 10%, transparent); --ft-bubble-bg: var(--white); --ft-bubble-fg: var(--navy); }
+/* the head sits on the page's bottom edge, cut off at the chin, eyes on the cursor */
+.foot__head { align-self: end; margin-bottom: -6.5%; }
+.foot .face-tracker__bubble { top: 6%; left: 66%; }
+.foot__main { padding-bottom: clamp(24px, 4svh, 44px); }
+.foot__links { display: flex; flex-wrap: wrap; gap: 4px 28px; }
+.foot__links a, .foot__links button { padding: 6px 0; border: 0; background: none; color: var(--white); font: inherit; font-size: clamp(18px, 1.5vw, 22px); font-weight: 600; letter-spacing: -0.03em; text-decoration: none; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.foot__links a:focus-visible, .foot__links button:focus-visible { outline: 2px solid var(--pink); outline-offset: 3px; }
+@media (hover: hover) { .foot__links a:hover, .foot__links button:hover { color: var(--pink); } }
+.foot__legal { margin: clamp(16px, 2.5svh, 24px) 0 0; font-size: 13px; color: var(--muted); }
+
+.foot__toast { position: fixed; z-index: 60; left: 50%; bottom: max(24px, env(safe-area-inset-bottom)); padding: 12px 22px; border-radius: 999px; background: var(--white); color: var(--navy); font-size: 15px; font-weight: 600; letter-spacing: -0.01em; opacity: 0; transform: translate(-50%, 8px); pointer-events: none; transition: opacity 0.2s, transform 0.2s ease; }
+.foot__toast.is-on { opacity: 1; transform: translate(-50%, 0); }
+.foot__toast:empty { padding: 0; }
+@media (prefers-reduced-motion: reduce) { .foot__toast, .foot__toast.is-on { transform: translate(-50%, 0); transition: opacity 0.2s; } }
+
+@media (max-width: 760px) {
+  .about { padding: 12px 16px 28px; }
+  .aq__text p { font-size: clamp(28px, 8.6vw, 38px); }
+  .aq__line { display: inline; }
+  .about__bio { margin-top: 18px; }
+  .foot { grid-template-columns: 1fr; padding: 20px 16px 0; }
+  .foot__main { order: 1; padding-bottom: 8px; }
+  .foot__head { order: 2; width: min(66vw, 300px); margin: 16px auto -7%; }
+  .foot .face-tracker__bubble { top: -2%; left: 58%; font-size: 14px; }
+  .foot__links { gap: 4px 22px; }
+}

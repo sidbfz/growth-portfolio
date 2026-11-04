@@ -1,0 +1,44 @@
+/* Paper and ink for the notebook's pages (notebook/sketches.jsx). */
+.nb-paper {
+  --nb-ink: #1a1718;
+  --nb-pink: #e2457a;
+  --nb-cream: #f4ede1;
+  --nb-blue: #2952d6;
+  --nb-hand: 'Caveat', 'Caveat Brush', 'Segoe Print', cursive;
+}
+.nb-paper { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.nb-rules line { stroke: rgba(26, 23, 24, 0.13); stroke-width: 0.7; }
+
+.nb-s {
+  fill: none;
+  stroke: var(--nb-ink);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.nb-s--pink { stroke: var(--nb-pink); }
+
+.nb-paper text {
+  font-family: var(--nb-hand);
+  font-weight: 600;
+  font-size: 28px;
+  fill: var(--nb-ink);
+}
+.nb-paper .nb-hi { fill: var(--nb-pink); font-weight: 700; }
+.nb-paper .nb-aside { font-size: 21px; font-weight: 500; fill: rgba(26, 23, 24, 0.62); }
+.nb-paper .nb-lbl { font-weight: 600; }
+.nb-paper .nb-lbl--pink { fill: var(--nb-pink); font-weight: 700; }
+.nb-paper .nb-lbl--soft { fill: rgba(26, 23, 24, 0.6); font-weight: 600; }
+/* a link: blue ballpoint (not the pink of the notes) in a hand-drawn pill */
+.nb-paper .nb-link { cursor: pointer; outline: none; }
+.nb-paper .nb-link text { font-size: 21px; font-weight: 700; fill: var(--nb-blue); text-decoration: underline; text-decoration-thickness: 1.2px; text-underline-offset: 3px; }
+.nb-link__hit { fill: transparent; }
+.nb-link__bg { fill: rgba(41, 82, 214, 0.07); transition: fill 0.15s; }
+.nb-link__pen { fill: none; stroke: var(--nb-blue); stroke-linecap: round; stroke-linejoin: round; }
+.nb-paper .nb-link:hover .nb-link__bg { fill: rgba(41, 82, 214, 0.16); }
+.nb-paper .nb-link:focus-visible .nb-link__bg { fill: rgba(41, 82, 214, 0.16); stroke: var(--nb-blue); stroke-width: 1.5; stroke-dasharray: 3 3; }
+.nb-paper .nb-pnum { font-size: 15px; font-weight: 500; fill: rgba(26, 23, 24, 0.4); }
+
+/* back cover: cream ink on the board */
+.nb-paper--dark .nb-s { stroke: var(--nb-cream); }
+.nb-paper--dark .nb-s--pink { stroke: var(--nb-pink); }
+.nb-paper--dark .nb-name { fill: var(--nb-cream); font-size: 40px; font-weight: 700; }

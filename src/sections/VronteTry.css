@@ -1,0 +1,209 @@
+/* "Built on Wispr Flow": headline left, the live Vronte phone right; stacked on phones. Paper background.
+   Nothing is drawn on the phone: the ink doodles (the Wispr Flow note, "it's live!") stand beside it. */
+.vt {
+  --vt-gm: var(--gm, clamp(20px, calc(20px + 40 * (100vw - 402px) / 1518), 60px));
+  --vt-hand: var(--marker, "Caveat Brush", "Gochi Hand", "Comic Sans MS", cursive);
+  /* the phone's width: as tall as the screen allows (the device is ~2.097 × its width; the section's padding is
+     ~60–90px), kept in proportion to the window's width, never past 400px */
+  --vp-dw: clamp(250px, min(calc((100svh - 100px) / 2.097), 28vw), 400px);
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 34rem) auto;
+  justify-content: center;
+  align-items: center;
+  column-gap: clamp(16px, 5vw, 96px);
+  padding: clamp(28px, 4.5svh, 52px) var(--vt-gm) clamp(20px, 3svh, 36px);
+  /* the right side keeps clear of the header's sound pill (fixed, top right, ~128px wide + the margin), so the
+     phone never runs under it. Eased off just above 900px, where the phone sits lower than the pill anyway and
+     the headline needs the room */
+  padding-right: calc(var(--vt-gm) + clamp(110px, 32vw - 180px, 142px));
+  background: var(--navy);
+  color: var(--white);
+  overflow-x: clip;
+}
+
+.vt__text { min-width: 0; }
+.vt__title {
+  margin: 0;
+  font-size: clamp(46px, 6.4vw, 104px);
+  font-weight: 700;
+  line-height: 0.96;
+  letter-spacing: -0.045em;
+  text-wrap: balance;
+}
+.vt__accent { color: var(--pink); white-space: nowrap; }
+.vt__line {
+  margin: clamp(18px, 2.6svh, 28px) 0 0;
+  max-width: 24em;
+  font-size: clamp(17px, 1.35vw, 21px);
+  line-height: 1.4;
+  letter-spacing: -0.015em;
+  color: var(--muted);
+  text-wrap: pretty;
+}
+.vt__links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 18px;
+  margin: clamp(32px, 5svh, 56px) 0 0;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  color: var(--muted);
+}
+.vt__link {
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--white);
+  text-decoration: underline;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 4px;
+  border-radius: 2px;
+}
+.vt__link:focus-visible { outline: 2px solid var(--pink); outline-offset: 4px; }
+@media (hover: hover) { .vt__link:hover { text-decoration-color: var(--pink); } }
+
+/* ---------- the stage: the doodles (left of the phone on desktop), the phone ---------- */
+/* --dc is the doodle column's width. The phone's box reserves 2.197 × its width but the device is ~2.097 ×,
+   so the phone pulls its bottom margin up by the difference and the stage is exactly the device's height. */
+.vt__stage {
+  --dc: clamp(252px, 16vw, 300px);
+  position: relative;
+  margin: 0;
+  padding-left: calc(var(--dc) + 6px);
+}
+.vt__phone { position: relative; z-index: 1; margin-bottom: calc(-0.1 * var(--vp-dw)); }
+
+.vt__note {
+  position: absolute;
+  left: 0;
+  top: 25%;
+  width: var(--dc);
+  transform: rotate(-3deg);
+}
+.vt__live {
+  position: absolute;
+  left: calc(var(--dc) * 0.1);
+  bottom: 7%;
+  width: calc(var(--dc) * 0.86);
+  margin: 0;
+  transform: rotate(-4deg);
+}
+.vt-ink { display: block; width: 100%; height: auto; overflow: visible; }
+/* "it's live!" is a button: a click nudges the phone (VronteTry.jsx), so it's never a dead end */
+.vt__live-btn {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 14px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.vt__live-btn:focus-visible { outline: 2px dashed var(--pink); outline-offset: 6px; }
+
+/* the nudge: the phone wiggles once and its frame glows pink */
+.vt__phone.is-nudged { transform-origin: 50% 70%; animation: vt-nudge 1.1s cubic-bezier(0.3, 0.6, 0.35, 1); }
+@keyframes vt-nudge {
+  0% { transform: none; filter: drop-shadow(0 0 0 transparent); }
+  10% { transform: rotate(-2.2deg); }
+  24% { transform: rotate(1.8deg); filter: drop-shadow(0 0 18px color-mix(in srgb, var(--pink) 85%, transparent)); }
+  38% { transform: rotate(-1.1deg); }
+  52% { transform: rotate(0.5deg); }
+  64% { transform: none; }
+  100% { transform: none; filter: drop-shadow(0 0 0 transparent); }
+}
+@keyframes vt-glow {
+  0%, 100% { filter: drop-shadow(0 0 0 transparent); }
+  30% { filter: drop-shadow(0 0 18px color-mix(in srgb, var(--pink) 85%, transparent)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vt__phone.is-nudged { animation-name: vt-glow; }
+}
+.vt__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ink: the notebook's pen and Caveat handwriting; pink is the accent */
+.vt-ink path {
+  fill: none;
+  stroke: var(--white);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.vt-ink path.vt-ink__pink { stroke: var(--pink); }
+.vt-ink text {
+  font-family: "Caveat", "Caveat Brush", "Segoe Print", cursive;
+  font-weight: 600;
+  fill: var(--white);
+}
+.vt-ink text.vt-ink__soft { fill: var(--muted); }
+.vt-ink text.vt-ink__bold { font-weight: 700; }
+.vt-ink tspan.vt-ink__pink { fill: var(--pink); font-weight: 700; }
+/* what points at the phone: to its side here (the note's arrow, the hand), down / up to it on phones */
+.vt-ink path.vt-ink--down,
+.vt-ink path.vt-ink--up { display: none; }
+
+/* draw-on, once: each stroke in turn (--d), then the handwriting fades in */
+.vt__stage .vt-ink path {
+  stroke-dasharray: 1 2;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 0.4s cubic-bezier(0.45, 0, 0.3, 1) var(--d, 0s);
+}
+.vt__stage .vt-ink text { opacity: 0; transition: opacity 0.35s linear var(--d, 0s); }
+.vt__stage.is-drawn .vt-ink path { stroke-dashoffset: 0; }
+.vt__stage.is-drawn .vt-ink text { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .vt__stage .vt-ink path { stroke-dashoffset: 0; transition: none; }
+  .vt__stage .vt-ink text { opacity: 1; transition: none; }
+}
+
+/* mid widths: a tighter stage so the headline keeps "Wispr Flow." on one line */
+@media (min-width: 900px) and (max-width: 1199px) {
+  .vt__title { font-size: 5.5vw; }
+  .vt__stage { --dc: 214px; }
+}
+
+/* ---------- phones and narrow windows: headline, line, then the note, the phone, "it's live!", the link ---------- */
+@media (max-width: 899px) {
+  .vt {
+    /* as wide as the side margins allow */
+    --vp-dw: min(360px, calc(100vw - 2 * var(--vt-gm)));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-block: clamp(28px, 4svh, 40px) clamp(16px, 2.5svh, 28px);
+    padding-inline: var(--vt-gm);
+  }
+  /* the text block dissolves so the link line can follow the phone */
+  .vt__text { display: contents; }
+  .vt__title { order: 1; align-self: stretch; font-size: clamp(44px, 13vw, 72px); }
+  .vt__line { order: 2; align-self: stretch; margin-top: 14px; font-size: 17px; }
+  .vt__stage {
+    order: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    margin-top: 22px;
+    padding: 0;
+  }
+  .vt__note,
+  .vt__live { position: relative; top: auto; left: auto; bottom: auto; }
+  .vt__note { width: min(300px, 100%); margin: 0 0 4px; transform: rotate(-2deg); }
+  .vt__live { width: min(236px, 74%); margin-top: 14px; transform: rotate(-3deg); }
+  .vt-ink path.vt-ink--side { display: none; }
+  .vt-ink path.vt-ink--down,
+  .vt-ink path.vt-ink--up { display: inline; }
+  .vt__links { order: 4; justify-content: center; margin-top: 18px; }
+}

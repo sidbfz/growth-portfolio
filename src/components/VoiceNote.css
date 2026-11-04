@@ -1,0 +1,77 @@
+/* Voice note views. Colours come from the theme variables only. */
+
+/* shared: the pink play/pause disc and the little waveform */
+.vnote__icon { flex: none; display: grid; place-items: center; aspect-ratio: 1; border-radius: 50%; background: var(--pink); color: var(--ink); }
+.vnote__icon svg { width: 46%; fill: currentColor; }
+.vnote__wave { display: inline-flex; align-items: center; gap: 2px; height: 14px; }
+.vnote__wave i { display: block; width: 2px; height: 100%; border-radius: 2px; background: currentColor; transform: scaleY(calc(var(--h) * 0.5)); transform-origin: 50% 50%; }
+.is-playing .vnote__wave i { background: var(--pink); animation: vnote-wave 0.9s ease-in-out var(--d) infinite alternate; }
+@keyframes vnote-wave { from { transform: scaleY(0.2); } to { transform: scaleY(var(--h)); } }
+
+/* hero button: an outlined pill that fills with progress */
+.vnote__btn {
+  position: relative; isolation: isolate; overflow: hidden;
+  display: inline-flex; align-items: center; gap: 10px;
+  height: var(--vnote-h, 56px); padding: 0 22px 0 8px;
+  border: 1.5px solid var(--white); border-radius: 999px;
+  background: transparent; color: var(--white);
+  font: inherit; font-weight: 600; font-size: var(--vnote-fs, 17px); letter-spacing: -0.02em; white-space: nowrap;
+  cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+  transition: transform 0.35s var(--ease-out);
+}
+.vnote__btn .vnote__icon { width: calc(var(--vnote-h, 56px) - 16px); }
+.vnote__btn:active { transform: scale(0.97); }
+.vnote__btn:focus-visible, .hvoice:focus-visible { outline: 2px solid var(--pink); outline-offset: 3px; }
+.vnote__fill { position: absolute; z-index: -1; inset: 0; background: color-mix(in srgb, var(--pink) 16%, transparent); transform-origin: 0 50%; transform: scaleX(0); }
+
+/* header pill: play, waveform, time; a hairline of progress along the bottom */
+.hvoice {
+  position: relative; overflow: hidden;
+  display: inline-flex; align-items: center; gap: 8px;
+  height: 46px; padding: 0 14px 0 5px;
+  border: 1.5px solid color-mix(in srgb, var(--white) 14%, transparent); border-radius: 999px;
+  background: var(--navy); color: var(--white);
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--white) 10%, transparent);
+  font: inherit; font-size: 14px; font-weight: 600; letter-spacing: -0.01em;
+  cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+}
+.hvoice .vnote__icon { width: 34px; }
+.hvoice .vnote__wave { color: var(--muted); }
+.hvoice__time { min-width: 2.4em; font-variant-numeric: tabular-nums; }
+.hvoice__bar { position: absolute; left: 14px; right: 14px; bottom: 4px; height: 2px; border-radius: 2px; overflow: hidden; opacity: 0; transition: opacity 0.2s; }
+.hvoice.is-open .hvoice__bar { opacity: 1; background: color-mix(in srgb, var(--white) 12%, transparent); }
+.hvoice__bar span { display: block; height: 100%; background: var(--pink); transform-origin: 0 50%; }
+.hvoice:active { transform: scale(0.97); }
+/* hidden while the hero's voice button is on screen; fades in once it has scrolled away */
+.hvoice { transition: opacity 0.3s, transform 0.4s var(--ease-out), visibility 0s; }
+.hvoice.is-away { opacity: 0; transform: translateY(-8px) scale(0.94); visibility: hidden; pointer-events: none; transition: opacity 0.2s, transform 0.3s var(--ease-out), visibility 0s 0.3s; }
+
+/* caption bubble: hangs under the header pill, right-aligned, never shifts the layout */
+.vcap { position: absolute; top: calc(100% + 8px); right: 0; width: min(320px, calc(100vw - 32px)); pointer-events: none; }
+.vcap__text {
+  margin: 0; padding: 10px 14px; border-radius: 16px 4px 16px 16px;
+  background: var(--white); color: var(--ink);
+  box-shadow: 0 10px 26px color-mix(in srgb, var(--white) 20%, transparent);
+  font-size: 14.5px; font-weight: 500; line-height: 1.35; letter-spacing: -0.01em; text-wrap: pretty;
+  animation: vcap-in 0.25s var(--ease-out);
+}
+.vcap:not(.is-on) { visibility: hidden; }
+/* under the hero button instead: left-aligned (centred on a phone), its tail on the other corner */
+.vcap--hero { z-index: 5; top: calc(100% + 10px); left: 0; right: auto; }
+.vcap--hero .vcap__text { border-radius: 4px 16px 16px 16px; }
+@keyframes vcap-in { from { opacity: 0; } }
+
+@media (max-width: 760px), (orientation: portrait) and (max-width: 1100px) {
+  .hvoice { height: 40px; padding-right: 12px; gap: 7px; font-size: 13.5px; }
+  .hvoice .vnote__icon { width: 30px; }
+  .vcap__text { font-size: 14px; }
+  .vcap--hero { left: 50%; transform: translateX(-50%); }
+  .vcap--hero .vcap__text { border-radius: 16px; text-align: center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vnote__btn { transition: none; }
+  .is-playing .vnote__wave i { animation: none; transform: scaleY(var(--h)); }
+  .vcap__text { animation: none; }
+  .hvoice, .hvoice.is-away { transform: none; }
+}

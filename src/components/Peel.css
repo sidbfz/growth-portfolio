@@ -1,0 +1,131 @@
+/* ---------- Peel (sticker card with a lifting corner) ---------- */
+.peel {
+  position: relative;
+  display: block;
+  isolation: isolate;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.peel__content {
+  position: relative;
+  z-index: 0;
+  overflow: hidden;
+  border-radius: var(--peel-radius, 0px);
+}
+.peel--mask .peel__content {
+  overflow: visible;
+  border-radius: 0;
+}
+.peel__content > img,
+.peel__content > picture,
+.peel__content > video {
+  display: block;
+  width: 100%;
+  height: auto;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.peel__flap,
+.peel__shadow {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  transform-origin: 0 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+.peel__shadow {
+  z-index: 1;
+  filter: blur(var(--peel-blur, 6px));
+}
+.peel__flap {
+  z-index: 2;
+  overflow: hidden;
+  background: var(--peel-back, #f1efe9);
+}
+/* soft darkening along the flap's outer (tip) edges */
+.peel__flap::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 5px rgba(20, 18, 14, 0.13), inset 0 0 1px rgba(20, 18, 14, 0.18);
+  pointer-events: none;
+}
+.peel--mask .peel__flap::after {
+  display: none;
+}
+.peel__fill {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+.peel__strip {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+}
+.peel--mask .peel__flap,
+.peel--mask .peel__fill {
+  overflow: visible;
+  background: none;
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+/* Only cards near the viewport get compositor hints. */
+.peel.is-live > .peel__flap,
+.peel.is-live > .peel__shadow {
+  will-change: transform;
+}
+
+/* ---------- PeelOff (sticker that peels off on scroll) ---------- */
+.peeloff {
+  position: relative;
+  display: block;
+  perspective: 1100px;
+}
+.peeloff__body {
+  position: relative;
+  z-index: 1;
+  transform-origin: 80% 20%;
+  backface-visibility: hidden;
+}
+.peeloff__ground {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: rgb(6, 8, 22);
+  opacity: 0;
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+.peeloff__ground--near {
+  filter: blur(7px);
+}
+.peeloff__ground--far {
+  filter: blur(34px);
+}
+
+/* ---------- PageCorner (big section corner curl) ---------- */
+.page-corner {
+  position: absolute;
+  z-index: 3;
+  pointer-events: none;
+  overflow: visible;
+}
+.page-corner > svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}

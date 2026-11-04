@@ -1,0 +1,245 @@
+/* Siddharth's notebook (Notebook.jsx). Book mechanic after Jhey Tompkins' "Little book of Jhey". */
+
+.nb {
+  --nb-ink: #1a1718;
+  --nb-pink: #e2457a;
+  --nb-paper: #fbf8f2;
+  --nb-paper-back: #f5f1e8;
+  --nb-board: #1f1c1d;
+  --nb-cream: #f4ede1;
+  --nb-hand: 'Caveat', 'Caveat Brush', 'Segoe Print', cursive;
+  /* page width, at one fixed size. Phones: the pad, one full page at ~90vw. Wider: two pages side by side */
+  --bw: min(90vw, (100svh - 150px) * 0.75);
+  --bh: calc(var(--bw) * 4 / 3);
+  /* the stage is the book plus a margin for the hint, not a whole screen: no empty bands */
+  --stage-h: min(100svh, calc(var(--bh) + 80px));
+  /* where the stage sticks: 0.5 centres it. The pad sits a little low, so a page flipping up
+     over the spiral has room above it */
+  --stick: 0.62;
+  position: relative;
+  /* --pin (vh of pinned scroll) is set from PIN in Notebook.jsx */
+  height: calc(var(--stage-h) + var(--pin, 200vh));
+  background: var(--navy);
+  color: var(--white);
+  overflow-x: clip;
+}
+@media (min-width: 700px) {
+  .nb {
+    --bw: min(46vw, (100svh - 140px) * 0.75, 500px);
+    --stage-h: min(100svh, calc(var(--bh) + 92px));
+    --stick: 0.5;
+  }
+}
+
+.nb__stage {
+  position: sticky;
+  top: max(0px, calc((100svh - var(--stage-h)) * var(--stick)));
+  height: var(--stage-h);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+/* while pinned, a page flipping up on the pad swings above the stage: keep it over the seam */
+.nb__stage.is-stuck { z-index: 2; }
+/* after the pin the stage sits on the seam below: keep it (and the book's soft shadow) over that
+   band, which would otherwise paint over the shadow and cut it off flat. Only the shadow reaches
+   into the band; the rip's peel hangs below the band, so it is never covered. */
+.nb__stage.is-past { z-index: 2; }
+
+.nb__hint {
+  position: absolute;
+  top: calc(50% - var(--bh) / 2 - 1.9em); /* just above the book */
+  left: 0;
+  right: 0;
+  margin: 0;
+  text-align: center;
+  font-family: var(--nb-hand);
+  font-weight: 500;
+  font-size: clamp(20px, 2.2vw, 26px);
+  color: var(--muted);
+  transform: rotate(-2deg);
+  pointer-events: none;
+}
+
+/* the book is flat: the back board, then the 3D stack of leaves (and the pad's spiral) over it */
+.nb__persp { position: relative; }
+
+.nb__book {
+  position: relative;
+  width: var(--bw);
+  aspect-ratio: 3 / 4;
+  /* the camera for the leaves: at the spine (the open spread is centred on it) */
+  perspective: 2200px;
+  perspective-origin: 0% 40%;
+  cursor: pointer;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  will-change: transform;
+}
+.nb__book:focus-visible .nb__board { box-shadow: 0 0 0 3px var(--nb-pink), 0 30px 50px -24px rgba(26, 23, 24, 0.5); }
+
+/* the back board: the base everything stacks on, and the last thing you see */
+.nb__board {
+  position: absolute;
+  inset: 0;
+  border-radius: 2px 14px 14px 2px;
+  background: var(--nb-board);
+  box-shadow: 0 30px 50px -24px rgba(26, 23, 24, 0.5), 0 2px 6px rgba(26, 23, 24, 0.18);
+}
+.nb__board > .nb__face { position: absolute; inset: 0; }
+.nb__stack { position: absolute; inset: 0; transform-style: preserve-3d; }
+/* the flat leaves sit at negative z, behind the stack's own box: let hits through to them (the
+   links on a page), and still up to the book's click handler */
+.nb__stack { pointer-events: none; }
+.nb__stack > .nb__leaf { pointer-events: auto; }
+
+.nb__leaf {
+  position: absolute;
+  left: 0;
+  top: 2.2%;
+  width: 96%;
+  height: 95.6%;
+  transform-style: preserve-3d;
+}
+.nb__leaf--cover { top: 0; width: 100%; height: 100%; }
+
+.nb__face {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  container-type: inline-size;
+}
+.nb__face--front {
+  border-radius: 0 10px 10px 0;
+  background: var(--nb-paper);
+  /* the page curves down into the spine */
+  background-image: linear-gradient(90deg, rgba(26, 23, 24, 0.13), rgba(26, 23, 24, 0) 9%);
+}
+.nb__face--back {
+  transform: rotateY(180deg);
+  border-radius: 10px 0 0 10px;
+  background: var(--nb-paper-back);
+  background-image: linear-gradient(270deg, rgba(26, 23, 24, 0.13), rgba(26, 23, 24, 0) 9%);
+}
+.nb__leaf--cover .nb__face--front { border-radius: 2px 14px 14px 2px; background: var(--nb-board); }
+.nb__leaf--cover .nb__face--back {
+  border-radius: 14px 2px 2px 14px;
+  background: var(--nb-board);
+  box-shadow: 0 30px 50px -24px rgba(26, 23, 24, 0.5);
+}
+.nb-endpaper {
+  /* the paper pasted inside the cover, the same size as the pages */
+  position: absolute;
+  right: 0;
+  top: 2.2%;
+  width: 96%;
+  height: 95.6%;
+  border-radius: 10px 0 0 10px;
+  background: #efe8dc linear-gradient(270deg, rgba(26, 23, 24, 0.14), rgba(26, 23, 24, 0) 9%);
+}
+
+/* ---------- cover ---------- */
+.nb-cover {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(120% 80% at 20% 0%, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0) 60%),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0) 6%);
+}
+.nb-cover__title {
+  position: absolute;
+  left: 10%;
+  top: 9%;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--nb-hand);
+  font-weight: 700;
+  font-size: 15cqw;
+  line-height: 0.9;
+  color: var(--nb-cream);
+  transform: rotate(-5deg);
+  transform-origin: 0 0;
+}
+.nb-cover__line { position: relative; padding-left: 0.4em; }
+.nb-cover__swoosh {
+  position: absolute;
+  left: 0.3em;
+  bottom: -0.32em;
+  width: 4.6em;
+  overflow: visible;
+}
+.nb-cover__sticker {
+  position: absolute;
+  right: 9%;
+  bottom: 9%;
+  width: 40%;
+  height: auto;
+  transform: rotate(14deg);
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.45));
+  user-select: none;
+  pointer-events: none;
+}
+.nb-cover__band {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 7%;
+  width: 3.2%;
+  background: #121011;
+  box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.06);
+}
+
+/* ---------- the pad (phones): bound along the top, pages flip up over the spiral ---------- */
+.nb[data-shape='pad'] .nb__book { perspective: 2400px; perspective-origin: 50% 45%; }
+.nb[data-shape='pad'] .nb__hint { top: calc(50% - var(--bh) / 2 - 2.2em); }
+.nb[data-shape='pad'] .nb__board { border-radius: 4px 4px 14px 14px; }
+.nb[data-shape='pad'] .nb__leaf { left: 2.2%; top: 0; width: 95.6%; height: 97.6%; }
+.nb[data-shape='pad'] .nb__leaf--cover { left: 0; width: 100%; height: 100%; }
+.nb[data-shape='pad'] .nb__face--front {
+  border-radius: 0 0 10px 10px;
+  background-image: linear-gradient(180deg, rgba(26, 23, 24, 0.12), rgba(26, 23, 24, 0) 7%);
+}
+.nb[data-shape='pad'] .nb__face--back {
+  transform: rotateX(180deg);
+  border-radius: 10px 10px 0 0;
+  background-image: linear-gradient(0deg, rgba(26, 23, 24, 0.12), rgba(26, 23, 24, 0) 7%);
+}
+.nb[data-shape='pad'] .nb__leaf--cover .nb__face--front { border-radius: 4px 4px 14px 14px; background: var(--nb-board); }
+.nb[data-shape='pad'] .nb__leaf--cover .nb__face--back { border-radius: 14px 14px 4px 4px; background: var(--nb-board); box-shadow: none; }
+.nb[data-shape='pad'] .nb-endpaper { left: 2.2%; right: auto; top: auto; bottom: 0; width: 95.6%; height: 97.6%; border-radius: 10px 10px 0 0; background-image: linear-gradient(0deg, rgba(26, 23, 24, 0.14), rgba(26, 23, 24, 0) 7%); }
+.nb[data-shape='pad'] .nb-cover {
+  background:
+    radial-gradient(120% 80% at 20% 0%, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0) 60%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0) 6%);
+}
+.nb[data-shape='pad'] .nb-cover__title { top: 13%; }
+/* the elastic runs across the bottom of a top-bound pad */
+.nb[data-shape='pad'] .nb-cover__band { top: auto; bottom: 7%; left: 0; right: 0; width: auto; height: 2.6%; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06); }
+.nb[data-shape='pad'] .nb-cover__sticker { bottom: 13%; }
+/* page numbers sit at the foot of each page, as on the book */
+
+/* the wire binding: sits over the top edge, above every flat leaf */
+.nb__spiral {
+  position: absolute;
+  left: 3%;
+  width: 94%;
+  top: calc(var(--bw) * -0.045);
+  height: calc(var(--bw) * 0.085);
+  overflow: visible;
+  transform: translateZ(14px);
+  pointer-events: none;
+}
+.nb__hole { fill: var(--nb-board); opacity: 0.85; }
+.nb__coil { fill: none; stroke: var(--nb-board); stroke-width: 1.5; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+@media (max-width: 699px) {
+  .nb__coil { stroke-width: 2.4px; }
+}
+
+/* ---------- reduced motion: open book, finished drawings, tap to turn ---------- */
+.nb[data-mode='still'] { height: auto; }
+.nb[data-mode='still'] .nb__stage { position: relative; z-index: 2; top: 0; height: auto; min-height: calc(var(--bh) + 80px); padding: 48px 0 24px; }
+.nb[data-mode='still'] .nb__hint { top: calc(48px + (100% - 72px - var(--bh)) / 2 - 1.9em); }

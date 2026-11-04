@@ -1,0 +1,53 @@
+/* Marker annotations: pink is reserved for these (and the primary CTA). */
+:root {
+  --marker: "Caveat Brush", "Gochi Hand", "Comic Sans MS", cursive;
+  /* translucent tape: the page's own paper, a shade darker, see-through */
+  --tape: color-mix(in srgb, color-mix(in srgb, var(--navy) 86%, var(--white)) 64%, transparent);
+  --paper-shadow: 0 1px 1px color-mix(in srgb, var(--white) 8%, transparent), 0 8px 18px -10px color-mix(in srgb, var(--white) 30%, transparent);
+}
+
+.mk { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.mk path { fill: none; stroke: var(--pink); stroke-linecap: round; stroke-linejoin: round; opacity: 0.94; }
+
+/* Draw-in: only inside an .mk-scope (the evidence desk). 4 marks × ~0.3s, then the notes. */
+.mk-scope .mk path {
+  stroke-dasharray: 1 2;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset calc(0.3s - var(--sub) * 0.16s) cubic-bezier(0.45, 0, 0.3, 1) calc(var(--i) * 0.3s + var(--sub) * 0.24s);
+}
+.mk-scope.is-drawn .mk path { stroke-dashoffset: 0; }
+.mk-scope .mk-note { opacity: 0; transition: opacity 0.2s linear 1.25s; }
+.mk-scope.is-drawn .mk-note { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .mk-scope .mk path { stroke-dashoffset: 0; transition: none; }
+  .mk-scope .mk-note { opacity: 1; transition: none; }
+}
+
+/* Notes are sized off their box (container query units), so they stay on the screenshot at any width. */
+.mk-note {
+  position: absolute;
+  font-family: var(--marker);
+  font-weight: 400;
+  font-size: clamp(15px, 5.6cqw, 30px);
+  line-height: 1.02;
+  letter-spacing: 0.005em;
+  color: var(--pink);
+  text-wrap: balance;
+  pointer-events: none;
+}
+/* for narrow crops (a phone screen), where 5.6cqw would read too small */
+.mk-note--big { font-size: clamp(16px, 7.6cqw, 32px); }
+
+.tape {
+  position: absolute;
+  z-index: 3;
+  height: 1.55rem;
+  margin-left: -2.75rem;
+  margin-top: -0.78rem;
+  background: var(--tape);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--white) 5%, transparent), 0 1px 2px color-mix(in srgb, var(--white) 12%, transparent);
+  transform: rotate(var(--r, 0deg));
+  /* torn ends */
+  clip-path: polygon(0 8%, 4% 0, 9% 10%, 14% 2%, 86% 0, 91% 9%, 96% 1%, 100% 10%, 100% 92%, 95% 100%, 90% 90%, 85% 100%, 13% 100%, 8% 91%, 3% 100%, 0 90%);
+  pointer-events: none;
+}

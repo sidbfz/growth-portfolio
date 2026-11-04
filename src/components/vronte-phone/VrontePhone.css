@@ -1,0 +1,21 @@
+/* The phone's light-DOM host only. Everything inside is styled by phone.css in the shadow root.
+   The min-height reserves the phone's exact size before its chunk loads, so nothing shifts when it appears:
+   the device is --dw wide and 2.197 x --dw tall (360:780 screen + bezel), plus 18px gap and the caption line. */
+.vrp-host {
+  --vrp-w: var(--vp-dw, clamp(268px, 23.5vw, 340px));
+  display: block;
+  min-height: calc(var(--vrp-w) * 2.197 + 44px);
+}
+.vrp-host.vrp-nocap {
+  min-height: calc(var(--vrp-w) * 2.197);
+}
+
+/* The device's shadow, re-cast for paper: warm (the theme's shadow tone, not Vronte's violet) and tight, so it
+   fades out well before the torn-paper seam under the section instead of being cut off by it in a hard line.
+   Set on the host, which beats the :host default inside the shadow root. */
+.vrp-host {
+  --shadow-device:
+    0 1px 1px color-mix(in srgb, var(--shadow, #4a2f22) 10%, transparent),
+    0 10px 20px -10px color-mix(in srgb, var(--shadow, #4a2f22) 24%, transparent),
+    0 28px 44px -24px color-mix(in srgb, var(--shadow, #4a2f22) 30%, transparent);
+}

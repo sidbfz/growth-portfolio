@@ -1,0 +1,241 @@
+/* Layout: stacked full-width scenes; navy → charcoal → navy with torn-paper seams.
+   Type: one tight grotesk at big sizes, pink accent words. */
+
+.u-accent { color: var(--pink); }
+.u-center { display: flex; justify-content: center; }
+
+/* Type and spacing tokens, fluid from 390 → 1440px. Display sizes are scaled by --fk and tracked in. */
+:root {
+  --fk: 0.96;
+  --gm: clamp(20px, calc(20px + 40 * (100vw - 402px) / 1518), 60px);
+  --gap: 2.18vw;
+}
+/* wider side margins from tablet-landscape up (phones keep the ones above): ~36 at 900, ~64 at
+   1280, ~76 at 1440, ~108 at 1869, capped at 120 */
+@media (min-width: 900px) { :root { --gm: clamp(36px, calc(7.4vw - 30.6px), 120px); } }
+:root {
+  --sp-lg: clamp(3rem, 2.20553rem + 3.16206vw, 6rem);
+  --sp-2xl: clamp(5.5rem, 4.04348rem + 5.7971vw, 11rem);
+  --sp-4xl: clamp(10rem, 7.88142rem + 8.43215vw, 18rem);
+  --fs-body: clamp(1.125rem, 1.0919rem + 0.131752vw, 1.25rem);
+  --fs-title: clamp(2.5rem, 2.00346rem + 1.97628vw, 4.375rem);
+  --fs-h2: clamp(2.5rem, 1.07658rem + 5.66535vw, 7.875rem);
+  --fs-large: clamp(2.5rem, 0.844862rem + 6.58762vw, 8.75rem);
+  --fs-tag: clamp(1.25rem, 1.155rem + 0.39vw, 1.75rem);
+  --fs-menu: clamp(2.0625rem, 1.28458rem + 3.09618vw, 5rem);
+  --btn-h: clamp(3.75rem, 3.08794rem + 2.63505vw, 6.25rem);
+  --btn-fs: clamp(1.25rem, 1.11759rem + 0.527009vw, 1.75rem);
+  --tear-h: 50svh;
+}
+@media (max-width: 991px) { :root { --tear-h: 25svh; } }
+@media (max-width: 479px) { :root { --tear-h: 15svh; } }
+
+/* ---------- shared: line reveal ---------- */
+.lines { margin: 0; font-weight: 600; letter-spacing: -0.045em; line-height: 1.1; text-align: center; }
+.lines__clip { display: block; overflow: hidden; padding-bottom: 0.1em; margin-bottom: -0.1em; }
+.lines__line { display: inline-block; transform: translateY(105%); transition: transform 0.9s var(--ease-out); }
+.is-in .lines__line { transform: none; }
+@media (prefers-reduced-motion: reduce) { .lines__line { transform: none; transition: none; } }
+
+/* section titles: two bold lines, the pair tilting apart as it scrolls up (--tp: 0 → 1) */
+.stitle { margin: 0; text-align: center; font-weight: 700; letter-spacing: -0.04em; line-height: 1.05; font-size: calc(var(--fs-title) * var(--fk)); color: var(--cream); }
+.stitle__l1 { transform: rotate(calc(-2deg * var(--tp, 0))); }
+.stitle__l2 { transform: rotate(calc(2deg - 2deg * var(--tp, 0))); color: var(--pink); }
+.stitle--reverse .stitle__l1 { color: var(--pink); }
+.stitle--reverse .stitle__l2 { color: var(--cream); }
+@media (prefers-reduced-motion: reduce) { .stitle__l1, .stitle__l2 { transform: none; } }
+
+/* ---------- pills ---------- */
+.pill { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; border-radius: 999px; font-weight: 600; font-size: 13px; letter-spacing: -0.01em; height: 34px; padding: 0 18px; transition: transform 0.35s var(--ease-out), background 0.2s; }
+.pill--light { background: var(--white); color: var(--ink); }
+@media (hover: hover) { .pill--light:hover { transform: scale(1.05) rotate(-2deg); } }
+/* the big CTA: cream pill, navy label; hover turns it pink and tips it, like the reference */
+.pill--big { position: relative; z-index: 2; height: var(--btn-h); min-width: 18.75rem; padding: 0 2.5rem; font-size: var(--btn-fs); font-weight: 700; letter-spacing: -0.03em; background: var(--cream); color: var(--navy); transition: transform 0.45s var(--ease-out), background-color 0.25s; }
+@media (hover: hover) { .pill--big:hover { background: var(--pink); transform: rotate(-3deg); } }
+.pill--big:active { background: var(--pink); }
+.pill:focus-visible, .hdr__logo:focus-visible { outline: 2px solid var(--pink); outline-offset: 3px; }
+@media (max-width: 767px) { .pill--big { min-width: 0; padding: 0 2.25rem; } }
+
+/* ---------- float ---------- */
+.float { animation: float var(--dur, 6s) ease-in-out var(--delay, 0s) infinite; }
+@keyframes float { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(calc(var(--amp) * -1)) rotate(1.5deg); } }
+@media (prefers-reduced-motion: reduce) { .float { animation: none; } }
+
+/* ---------- header ---------- */
+/* docked from the first frame: name left, voice pill right. The voice pill shows once the hero's
+   voice button has scrolled away; the name comes in once the giant one has */
+.hdr { position: fixed; z-index: 50; inset: 0 0 auto; display: flex; justify-content: space-between; align-items: center; padding: max(28px, env(safe-area-inset-top)) max(var(--gm), env(safe-area-inset-right)) 0 max(var(--gm), env(safe-area-inset-left)); pointer-events: none; }
+.hdr > * { pointer-events: auto; }
+/* the logo is a pill like the buttons, so it reads over whatever scrolls underneath */
+.hdr__logo { display: inline-flex; align-items: center; height: 46px; padding: 0 20px; overflow: hidden; border-radius: 999px; border: 1.5px solid color-mix(in srgb, var(--white) 12%, transparent); background: var(--navy); box-shadow: 0 6px 18px color-mix(in srgb, var(--white) 10%, transparent); color: var(--pink); font-weight: 700; font-size: clamp(18px, 1.6vw, 24px); letter-spacing: -0.04em; line-height: 1; text-decoration: none; transform: translateY(-12px); opacity: 0; transition: transform 0.45s var(--ease-out), opacity 0.25s; }
+.hdr--solid .hdr__logo { transform: none; opacity: 1; }
+.hdr:not(.hdr--solid) .hdr__logo { pointer-events: none; }
+.hdr__right { position: relative; display: flex; align-items: center; gap: 10px; }
+/* the sound button: a pill like the name's (cream, hairline, soft shadow), speaker + "Sound off".
+   Off is the default on every visit, and this is the only way in. On: "Sound on", the speaker's
+   waves come in pink (the cross where they were goes) and the pill gives a little hop. Hover tips
+   it like the other paper pills. */
+.hsnd { display: inline-flex; align-items: center; gap: 7px; height: 46px; padding: 0 17px 0 13px; border-radius: 999px; border: 1.5px solid color-mix(in srgb, var(--white) 12%, transparent); background: var(--navy); box-shadow: 0 6px 18px color-mix(in srgb, var(--white) 10%, transparent); color: var(--white); font: inherit; font-weight: 600; font-size: 15px; letter-spacing: -0.02em; line-height: 1; white-space: nowrap; cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation; transition: transform 0.35s var(--ease-out), color 0.2s, border-color 0.2s; }
+.hsnd svg { flex: none; width: 22px; height: 22px; overflow: visible; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.hsnd__spk { fill: currentColor; }
+.hsnd__w, .hsnd__x { transition: opacity 0.2s, transform 0.3s var(--ease-out); transform-box: fill-box; transform-origin: 0 50%; }
+.hsnd__x { stroke: var(--muted); }
+/* "off" and "on" take the same room, so the pill doesn't change width when pressed */
+.hsnd__state { display: inline-block; min-width: 1.45em; }
+.hsnd:not(.is-on) .hsnd__w { opacity: 0; transform: scale(0.6); }
+.hsnd.is-on .hsnd__x { opacity: 0; transform: scale(0.6); }
+.hsnd.is-on .hsnd__w { stroke: var(--pink); }
+.hsnd.is-on .hsnd__w2 { transition-delay: 0.08s; }
+.hsnd.is-on { border-color: color-mix(in srgb, var(--pink) 55%, transparent); animation: hsnd-on 0.45s var(--ease-out); }
+@keyframes hsnd-on { 40% { transform: translateY(-3px) rotate(-4deg) scale(1.04); } }
+.hsnd:active { transform: scale(0.95) rotate(-3deg); }
+@media (hover: hover) { .hsnd:hover { transform: rotate(-4deg); } }
+.hsnd:focus-visible { outline: 2px solid var(--pink); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { .hsnd, .hsnd__w, .hsnd__x { transition: none; } .hsnd.is-on { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .hdr__logo { transform: none; transition: opacity 0.2s; } }
+
+/* ---------- hero ---------- */
+/* Like the reference, the hero simply scrolls (no sticky stage). The giant name runs across the
+   top, centred; the torn head sits big and centred under it, its objects sunk about halfway into
+   the tear and overlapping the foot of the name, the whole face on the first screen. The value
+   line is a marker note beside the face at eye level, the voice button under it. Sizes are in --u
+   (1vw, capped by the height on wide, short screens), so everything keeps the same fit. --hh is the
+   head box's height; the hero ends just under the chin (the stickers end at the beard, ~92% of
+   their height), so the next section follows with no empty band. On screens squarer than 16:10 the
+   spare height (--xh) moves the head and the name down. */
+.hero { --u: min(1vw, 1.6svh); --xh: max(0px, 100svh - 64 * var(--u)); --sw: calc(62 * var(--u)); --hh: calc(var(--sw) * 812 / 705); --st: calc(-2.6 * var(--u) + var(--xh)); position: relative; height: calc(var(--st) + var(--hh) * 0.925); background: var(--navy); overflow-x: clip; }
+/* the negative right margin cancels the tracking after the last letter, so the name sits truly centred */
+.hero__title { position: relative; z-index: 1; margin: 0; padding-top: calc(0.5 * var(--u) + 0.8 * var(--xh)); text-align: center; color: var(--pink); font-weight: 600; letter-spacing: -0.065em; line-height: 0.86; font-size: calc(20.5 * var(--u)); white-space: nowrap; }
+.hero__title::after { content: ""; display: inline-block; margin-right: 0.065em; }
+/* intro: the name slides up out of its own line (--tin: 1 → 0), cut off at the line's foot, the
+   way the reference's does; the clip only bites while it runs */
+.hero__name { display: inline-block; }
+.hero__title[style*="--tin"] { clip-path: inset(-50% -50vw 0 -50vw); }
+.hero__title[style*="--tin"] .hero__name { transform: translateY(calc(var(--tin) * 105%)); }
+
+/* The value line, as a marker note left of the face at eye level, its arrow pointing at the head;
+   the voice button right under it. It spans from the margin to the hair's edge (~10% inside the
+   head's box), so it never covers the face. */
+.hero__pitch { --pl: var(--gm); position: absolute; z-index: 3; left: var(--pl); top: calc(var(--st) + var(--hh) * 0.46); width: calc(50vw - var(--sw) * 0.4 - var(--pl)); }
+.hero__note { position: relative; padding-right: calc(1.6 * var(--u)); }
+/* intro: the note and the voice button fade in as the head lands (--pitch: 0 → 1); always clickable */
+.hero__note, .hero__ctas { opacity: var(--pitch, 1); }
+/* ...and until then the page below keeps out of the way too (on a phone it peeks in under the hero),
+   so the head rises on a blank sheet, like the reference's */
+.hero.is-hush ~ * { opacity: 0; }
+.hero.is-unhush ~ * { transition: opacity 0.5s ease; }
+.hero__line { margin: 0; color: var(--white); font-family: var(--marker); font-weight: 400; font-size: max(24px, calc(2.65 * var(--u))); line-height: 1.04; letter-spacing: 0.005em; text-wrap: pretty; transform: rotate(-3deg); transform-origin: 0 50%; }
+.hero__arrow { position: absolute; overflow: visible; pointer-events: none; }
+.hero__arrow path { fill: none; stroke: var(--pink); stroke-width: 2.8; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke;
+  /* it draws itself in once the intro has finished */
+  stroke-dasharray: 1 2; stroke-dashoffset: 1; transition: stroke-dashoffset 0.45s cubic-bezier(0.45, 0, 0.3, 1) calc(0.25s + var(--sub) * 0.4s); }
+/* beside the note's (short) last line, rising toward the head */
+.hero__arrow--side { right: calc(-1.2 * var(--u)); bottom: 2%; width: calc(6.2 * var(--u)); height: auto; aspect-ratio: 100 / 70; }
+.hero__arrow--down { display: none; }
+.hero.is-ready .hero__arrow path { stroke-dashoffset: 0; }
+@media (prefers-reduced-motion: reduce) { .hero__arrow path { stroke-dashoffset: 0; transition: none; } }
+.hero__ctas { position: relative; display: flex; align-items: center; margin-top: calc(2 * var(--u)); --vnote-h: clamp(44px, calc(3.7 * var(--u)), 60px); --vnote-fs: clamp(14px, calc(1.08 * var(--u)), 17px); }
+.hero__ctas .vnote__btn { gap: calc(0.6 * var(--u)); padding-right: calc(1.4 * var(--u)); }
+
+/* centred with a negative margin, not a transform: the peel's fold flap is placed in this box */
+.hero__stage { position: absolute; z-index: 2; top: var(--st); left: 50%; width: var(--sw); margin-left: calc(var(--sw) / -2); }
+.hero__peel { position: relative; }
+/* one shadow for the whole sticker (cover, torn head, face), as a paper sticker lying on paper: a
+   tight contact line hugging the white rim, plus a short, faint, slightly offset falloff (light from
+   the top-left), in the theme's warm shadow tone so it never reads grey on the paper. While the head
+   rises in (--lift: 1 → 0) it is off the page: the shadow is softer, wider and lighter, then settles. */
+.hero__head { position: relative; z-index: 1; aspect-ratio: 705 / 812; --ft-shadow: none;
+  filter:
+    drop-shadow(calc(0.4px + 3px * var(--lift, 0)) calc(0.8px + 8px * var(--lift, 0)) calc(1px + 6px * var(--lift, 0)) color-mix(in srgb, var(--shadow) calc(26% - 14% * var(--lift, 0)), transparent))
+    drop-shadow(calc(1.5px + 8px * var(--lift, 0)) calc(4px + 22px * var(--lift, 0)) calc(6px + 18px * var(--lift, 0)) color-mix(in srgb, var(--shadow) calc(9% + 3% * var(--lift, 0)), transparent)); }
+.hero__face, .hero__surprised { position: absolute; inset: 0; }
+/* face ↔ surprised is a hard cut (no cross-fade: the drawings don't line up, so a fade double-exposes) */
+.hero__surprised { width: 100%; height: 100%; object-fit: contain; }
+.is-hidden { opacity: 0; pointer-events: none; }
+
+/* the five objects, placed in % of the head box (the tear sits at ~35%); the clip keeps them above it.
+   Sized and gathered for Siddharth's head, which spans ~15-84% of the box at the tear. */
+.hero__props { position: absolute; z-index: 0; inset: 0; pointer-events: none; }
+.hero__mouth { position: absolute; inset: 0; }
+.hp { position: absolute; }
+.hp img { width: 100%; filter: drop-shadow(0 12px 16px color-mix(in srgb, var(--white) 24%, transparent)); }
+/* tilt lives on the image: the float animation owns the wrapper's transform */
+.hp--book   { width: 28%;   left: 18.1%; top: 19.2%; }
+.hp--book img { transform: rotate(-14deg); }
+.hp--camera { width: 27%;   left: 61%;   top: 18.3%; }
+.hp--camera img { transform: rotate(13deg); }
+.hp--laptop { width: 44%;   left: 30.2%; top: 15.3%; }
+.hp--laptop img { transform: rotate(4deg); }
+.hp--mic    { width: 26%;   left: 6%;    top: 17.4%; }
+.hp--mic img { transform: rotate(-22deg); }
+.hp--heart  { width: 17%;   left: 26.9%; top: 26.9%; }
+.hp--heart img { transform: rotate(-12deg); }
+
+/* mobile head carousel */
+.hcar__arrow { position: absolute; z-index: 3; top: 66%; width: 44px; height: 44px; margin-top: -22px; padding: 0; border-radius: 50%; border: 1.5px solid color-mix(in srgb, var(--white) 30%, transparent); background: color-mix(in srgb, var(--navy) 70%, transparent); color: var(--white); display: grid; place-items: center; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.hcar__arrow svg { width: 18px; height: 18px; }
+.hcar__arrow--prev { left: -4vw; }
+.hcar__arrow--next { right: -4vw; }
+.hcar__arrow:focus-visible { outline: 2px solid var(--pink); outline-offset: 2px; }
+/* the pill sits over the chin, like the reference's (and over the flat foot of the glance frames) */
+.hcar__label { position: absolute; z-index: 3; left: 50%; top: 88.5%; transform: translateX(-50%); }
+.hcar__pill { position: relative; display: grid; place-items: center; width: 150px; height: 54px; transform: rotate(-4deg); filter: drop-shadow(0 6px 10px color-mix(in srgb, var(--white) 20%, transparent)); animation: hcar-pop 0.55s var(--ease-out); }
+.hcar__paper { position: absolute; inset: 0; width: 100%; height: 100%; }
+.hcar__paper rect { fill: var(--charcoal); }
+.hcar__text { position: relative; color: var(--white); font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
+/* the label sits on the chin, where the peel starts: it and the arrows leave as the head comes away */
+.hcar__arrow, .hcar__label { transition: opacity 0.25s, visibility 0s; }
+.hero__stage.is-peeling .hcar__arrow, .hero__stage.is-peeling .hcar__label { opacity: 0; visibility: hidden; transition: opacity 0.25s, visibility 0s 0.25s; }
+@keyframes hcar-pop { from { opacity: 0; transform: translateY(10px) rotate(3deg) scale(0.82); } 45% { opacity: 1; } to { transform: rotate(-4deg); } }
+@media (prefers-reduced-motion: reduce) { .hcar__pill { animation: none; } }
+
+@media (max-width: 760px), (orientation: portrait) and (max-width: 1100px) {
+  .hdr { padding: max(14px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 0 max(16px, env(safe-area-inset-left)); }
+  .hdr__logo { height: 40px; padding: 0 16px; font-size: 19px; }
+  .hsnd { height: 40px; gap: 6px; padding: 0 14px 0 11px; font-size: 14px; }
+  .hsnd svg { width: 20px; height: 20px; }
+  /* a narrow phone with the voice pill showing too: just the speaker and "off" / "on" on screen ("Sound" stays
+     in the accessible name, visually hidden) */
+  @media (max-width: 420px) { .hdr__right:has(.hvoice:not(.is-away)) .hsnd__word { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; } }
+
+  /* phone: everything stacks and is centred, like the reference's phone layout: the name, the
+     marker note under it (its arrow curling into the head), the head (its objects over the note's
+     foot, arrows and label pill on it), then the voice button; all of it fits one 360×740 screen */
+  .hero { --sw: min(86vw, 42svh); display: flex; flex-direction: column; height: auto; padding-bottom: 20px; }
+  .hero__title { order: 1; padding: calc(max(14px, env(safe-area-inset-top)) + 46px) 0 0; font-size: 22vw; letter-spacing: -0.06em; }
+  .hero__title::after { margin-right: 0.06em; }
+  .hero__pitch { display: contents; }
+  .hero__note { order: 2; position: relative; z-index: 3; align-self: center; width: min(100% - 40px, 350px); margin-top: 10px; padding-right: 0; }
+  .hero__line { font-size: clamp(21px, 6.3vw, 26px); line-height: 1.02; text-align: center; text-wrap: balance; transform: rotate(-2deg); transform-origin: 50% 50%; }
+  .hero__arrow--side { display: none; }
+  .hero__arrow--down { display: block; left: 2px; bottom: -40px; width: 30px; height: auto; aspect-ratio: 50 / 60; }
+  .hero__stage { order: 3; position: relative; top: auto; left: auto; width: var(--sw); margin: calc(var(--hh) * -0.045) auto 0; }
+  .hero__ctas { order: 4; justify-content: center; margin-top: 14px; --vnote-h: 48px; --vnote-fs: 14.5px; }
+  .hero__ctas .vnote__btn { gap: 8px; padding: 0 18px 0 8px; }
+}
+
+/* ---------- below the hero: shared bits (screens live in src/sections/*.css) ---------- */
+/* torn-paper seams: short, static; each overlaps its neighbours by a hair so no line shows */
+.paper-tear.tear { margin-top: calc(var(--tear-h) * -0.25 - 1px); }
+.paper-tear.seam { margin-block: -1px; }
+
+/* buttons: ink pill (primary turns marker-pink on hover), and a quiet outlined one */
+.btn { display: inline-flex; align-items: center; gap: 10px; height: 54px; padding: 0 28px; border: 0; border-radius: 999px; font: inherit; font-size: 17px; font-weight: 700; letter-spacing: -0.02em; text-decoration: none; white-space: nowrap; cursor: pointer; transition: background-color 0.15s, color 0.15s, box-shadow 0.15s; -webkit-tap-highlight-color: transparent; }
+.btn svg { width: 18px; height: 18px; flex: none; }
+.btn--primary { background: var(--white); color: var(--navy); }
+.btn--big { height: 60px; padding: 0 34px; font-size: 18px; }
+.btn--quiet { background: none; color: var(--white); font-weight: 600; box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--white) 26%, transparent); }
+@media (hover: hover) {
+  .btn--primary:hover { background: var(--pink); color: var(--white); }
+  .btn--quiet:hover { box-shadow: inset 0 0 0 1.5px var(--white); }
+}
+.btn--primary:active { background: var(--pink); color: var(--white); }
+.btn:focus-visible { outline: 2.5px solid var(--pink); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { .btn { transition: none; } }
+
+@media (max-width: 767px) {
+  :root { --gap: 12px; }
+}
+
+/* story sections sit on blush between the two paper tears; children that paint var(--navy) follow */
+.on-blush { --navy: var(--charcoal); background: var(--charcoal); }

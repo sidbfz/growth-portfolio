@@ -1,0 +1,27 @@
+.cpeel { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
+.cpeel__stuck { position: absolute; inset: 0; }
+.cpeel__stuck img { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; object-fit: contain; }
+
+/* PaperFlap: thin paper peeling up (a roll at the contact line, its back lying over the rest).
+   Every layer fills the sticker box; transforms map the paper's own coordinates onto the screen.
+   No z-index on .pflap itself: it must not be a stacking context of its own, or the shadows would
+   only multiply onto the (empty) flap instead of onto the head and page under it. Its two layers
+   carry the z-index instead (shade, then paper, both over the head). */
+.pflap { position: absolute; inset: 0; pointer-events: none; }
+.pflap__paper, .pflap__shade, .pflap__xf, .pflap__clip { position: absolute; inset: 0; }
+
+.pflap__shade, .pflap__paper { z-index: 4; }
+.pflap__xf { transform-origin: 0 0; }
+/* the shadows the loose paper casts (see PaperFlap), multiplied in the theme's warm shadow tone */
+.pflap__shade { mix-blend-mode: multiply; }
+.pflap__fill {
+  position: absolute; inset: 0;
+  -webkit-mask-size: contain; mask-size: contain;
+  -webkit-mask-position: center; mask-position: center;
+  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+}
+/* the printed side, inside the roll: the sticker image placed like the head's (object-fit: contain) */
+.pflap__face { background-size: 100% 100%, contain; background-position: 0 0, center; background-repeat: no-repeat; }
+/* the back of the sticker (see PaperFlap/loadBackTex): the shading overlay over the back texture,
+   placed like the mask (object-fit: contain); a flat back-of-paper tone until the texture is ready */
+.pflap__back { background-color: rgb(239, 237, 233); background-size: 100% 100%, contain; background-position: 0 0, center; background-repeat: no-repeat; }

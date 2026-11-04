@@ -1,0 +1,41 @@
+/* The "psst… sound on?" marker note by the header's sound pill (SoundHint.jsx). Placed from the
+   pill's corner (the box itself is zero-size): under the pill on wide screens, left of it on phones.
+   Only the words take clicks. */
+.shint { --u: min(1vw, 1.6svh); position: absolute; top: 100%; right: 0; width: 0; height: 0; pointer-events: none; visibility: hidden; opacity: 0; transition: opacity 0.3s ease, visibility 0s 0.3s; }
+.shint.is-on { visibility: visible; opacity: 1; transition: opacity 0.2s ease, visibility 0s; }
+.shint__arrow { position: absolute; overflow: visible; pointer-events: none; }
+.shint__arrow path { fill: none; stroke: var(--pink); stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke;
+  /* draws itself in once the words are there (the reset waits for the fade out) */
+  stroke-dasharray: 1 2; stroke-dashoffset: 1; transition: stroke-dashoffset 0s 0.35s; }
+.shint.is-on .shint__arrow path { stroke-dashoffset: 0; transition: stroke-dashoffset calc(0.4s - var(--sub) * 0.22s) cubic-bezier(0.45, 0, 0.3, 1) calc(0.75s + var(--sub) * 0.36s); }
+
+.shint__btn { position: absolute; margin: 0; padding: 4px 6px; border: 0; border-radius: 10px; background: none; color: var(--white); font-family: var(--marker); font-weight: 400; font-size: max(18px, calc(1.7 * var(--u))); line-height: 0.98; letter-spacing: 0.01em; text-align: left; white-space: nowrap; cursor: pointer; pointer-events: auto; -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+  opacity: 0; transform: rotate(-5deg); transition: opacity 0s 0.35s, transform 0.35s var(--ease-out); }
+.shint.is-on .shint__btn { opacity: 1; transition: opacity 0.35s ease 0.4s, transform 0.35s var(--ease-out); }
+.shint__b { color: var(--pink); }
+@media (hover: hover) { .shint__btn:hover { transform: rotate(-8deg) scale(1.04); } }
+.shint__btn:active { transform: rotate(-8deg) scale(0.96); }
+.shint__btn:focus-visible { outline: 2px solid var(--pink); outline-offset: 2px; }
+
+/* wide screens: two lines in the right margin past the name's last letter, the arrow hooking up
+   from above their end into the pill's foot */
+.shint__a, .shint__b { display: block; }
+.shint__btn { top: calc(30px + 0.6 * var(--u)); right: calc(-0.6 * var(--gm)); }
+.shint__arrow--up { top: 2px; right: -6px; width: 46px; height: auto; aspect-ratio: 60 / 50; }
+.shint__arrow--side { display: none; }
+
+/* phones and portrait tablets (the stacked hero; keep in sync with App.css): one line left of the
+   pill, above the name, the arrow pointing right at it */
+@media (max-width: 760px), (orientation: portrait) and (max-width: 1100px) {
+  .shint { top: 50%; right: 100%; }
+  .shint__a, .shint__b { display: inline; }
+  .shint__btn { top: auto; bottom: -15px; right: 34px; font-size: 19px; transform: rotate(-4deg); }
+  .shint__arrow--up { display: none; }
+  .shint__arrow--side { display: block; top: -17px; right: 2px; width: 34px; height: auto; aspect-ratio: 36 / 26; }
+  /* with the header's voice pill showing there's no room beside the sound pill */
+  .hdr__right:has(.hvoice:not(.is-away)) .shint { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shint, .shint.is-on, .shint__btn, .shint.is-on .shint__btn, .shint__arrow path, .shint.is-on .shint__arrow path { transition: none; }
+}
