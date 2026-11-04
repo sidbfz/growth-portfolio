@@ -420,6 +420,7 @@ const TEAR_LINE = tearLine(1, TEAR.base, TEAR.seed) // (% of the head box) the l
 const FOLD_N = [0.545, -0.838] // unit normal of the crease, pointing at the part still stuck down
 const FOLD_SPEED = 1.57 // px the crease moves along FOLD_N per px scrolled
 const SWAP_AT = 30 // screen y of the tear at which the face turns surprised
+const PEEL_OFF = { level: 0.79 } // its sound: -2 dB under the intro's peel, so the surprised face's vine boom leads
 // ...and the crease reaches the chin when the tear is at screen y 22 - 0.028·(head height): ~-14 on desktop, ~12 on a phone
 
 /** Where the crease first touches the head (d0) and where it has passed all of it (d1), in px along FOLD_N. */
@@ -531,7 +532,7 @@ function Hero() {
   useScrubSound('peel', done || intro <= 0 ? null : coverState(intro, hw, hh, sil, TEAR_LINE).s)
   useSoundCues(done ? null : intro, [SWEEP_END], sfx.whoosh)
   useSoundCues(done ? null : ms, Object.values(starts).map((a) => a + 0.25 * IN.prop), sfx.pop)
-  useScrubSound('peel', peeling && !gone ? Math.min(1, (d - range0.d0) / (range0.d1 - range0.d0)) : null)
+  useScrubSound('peel', peeling && !gone ? Math.min(1, (d - range0.d0) / (range0.d1 - range0.d0)) : null, PEEL_OFF)
   useEffect(() => { if (surprised) sfxExpr('surprised') }, [surprised]) // its meme cue, once per swap
 
   return (
